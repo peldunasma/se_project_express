@@ -1,5 +1,4 @@
 const ClothingItem = require("../models/clothingItem");
-const User = require("../models/user");
 const {
   INVALID_DATA_ERROR,
   NOTFOUND_ERROR,
