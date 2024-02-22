@@ -1,3 +1,4 @@
+const clothingItem = require("../models/clothingItem");
 const ClothingItem = require("../models/clothingItem");
 const {
   INVALID_DATA_ERROR,
@@ -20,7 +21,7 @@ const getClothingItems = (req, res) => {
 
 const createClothingItem = (req, res) => {
   const { name, weather, imageUrl} = req.body;
-  User.create({ name, weather, imageUrl, owner: req.user._id })
+  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
@@ -35,7 +36,7 @@ const createClothingItem = (req, res) => {
 
 const deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
-  Item.findByIdAndDelete(itemId)
+  ClothingItem.findByIdAndDelete(itemId)
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
@@ -53,7 +54,7 @@ const deleteClothingItem = (req, res) => {
 // like an item
 
 const likeItem = (req, res) => {
-  Item.findByIdAndUpdate(
+  clothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
@@ -80,7 +81,7 @@ const likeItem = (req, res) => {
 // unlike an item
 
 const dislikeItem = (req, res) => {
-  Item.findByIdAndUpdate(
+  clothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
     { new: true },
