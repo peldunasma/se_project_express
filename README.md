@@ -7,3 +7,9 @@ The back-end project is focused on creating a server for the WTWR application. Y
 
 ### Testing
 Before committing your code, make sure you edit the file `sprint.txt` in the root folder. The file `sprint.txt` should contain the number of the sprint you're currently working on. For ex. 12
+
+#### Technologies Used
+This project is an Express app built with Javascript, MongoDB, and Postman.
+
+##### Links 
+Github Repo - https://github.com/peldunasma/se_project_express Domain-

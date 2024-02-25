@@ -12,7 +12,7 @@ const getClothingItems = (req, res) => {
     .then ((items) => res.status(200).send(items))
     .catch((err) => {
       console.log(err);
-      res.status(DEFAULT_ERROR).send({message: err.message})
+      res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server" })
     })
 };
 
@@ -25,9 +25,9 @@ const createClothingItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-      return res.status(INVALID_DATA_ERROR ).send({message: err.message});
+      return res.status(INVALID_DATA_ERROR ).send({message: "Invalid data"});
       }
-      return res.status(DEFAULT_ERROR ).send({message: err.message});
+      return res.status(DEFAULT_ERROR ).send({message: "An error has occurred on the server" });
     });
 };
 
@@ -44,9 +44,9 @@ const deleteClothingItem = (req, res) => {
         return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
       if (err.name === "CastError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+        return res.status(NOTFOUND_ERROR).send({ message: "Invalid data" });
       }
-      return res.status(DEFAULT_ERROR).send({ message: err.message });
+      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server"  });
     });
 };
 
@@ -71,9 +71,9 @@ const likeItem = (req, res) => {
       }
 
       if (err.name === "CastError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+        return res.status(NOTFOUND_ERROR).send({ message:"Invalid data" });
       }
-      return res.status(DEFAULT_ERROR).send({ message: err.message });
+      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server"  });
     });
 };
 
@@ -98,9 +98,9 @@ const dislikeItem = (req, res) => {
       }
 
       if (err.name === "CastError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+        return res.status(NOTFOUND_ERROR).send({ message: "Invalid data"});
       }
-      return res.status(DEFAULT_ERROR).send({ message: err.message });
+      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server"  });
     });
 };
 
