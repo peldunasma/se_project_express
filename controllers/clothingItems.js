@@ -9,31 +9,25 @@ const {
 
 const getClothingItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send(items))
+    .then ((items) => res.status(200).send(items))
     .catch((err) => {
       console.log(err);
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "The server has encountered an error" });
-    });
+      res.status(DEFAULT_ERROR).send({message: err.message})
+    })
 };
 
 // creates a new item
 
 const createClothingItem = (req, res) => {
-  const { name, weather, imageUrl } = req.body;
-
+  const { name, weather, imageUrl} = req.body;
   ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
-      } else {
-        return res
-          .status(DEFAULT_ERROR)
-          .send({ message: "The server has encountered an error" });
+      return res.status(INVALID_DATA_ERROR ).send({message: err.message});
       }
+      return res.status(DEFAULT_ERROR ).send({message: err.message});
     });
 };
 
@@ -47,24 +41,23 @@ const deleteClothingItem = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: "Item not found"});
-      }else if (err.name === "CastError") {
-        return res.status(NOTFOUND_ERROR).send({ message: "Invalid data" });
-      } else {
-        return res.status(DEFAULT_ERROR).send({ message: "The server has encountered an error" });
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
+      if (err.name === "CastError") {
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+      }
+      return res.status(DEFAULT_ERROR).send({ message: err.message });
     });
 };
 
 // like an item
 
 const likeItem = (req, res) => {
-  clothingItem
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    )
+  clothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
     .orFail()
     .then((item) => {
       res.send(item);
@@ -72,26 +65,26 @@ const likeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: "Item not found"});
+        return res
+          .status(NOTFOUND_ERROR)
+          .send({ message: err.message });
       }
 
-      else if (err.name === "CastError") {
-        return res.status(NOTFOUND_ERROR).send({ message: "Invalid data" });
-      } else {
-        return res.status(DEFAULT_ERROR).send({ message: "The server has encountered an error"  });
+      if (err.name === "CastError") {
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
+      return res.status(DEFAULT_ERROR).send({ message: err.message });
     });
 };
 
 // unlike an item
 
 const dislikeItem = (req, res) => {
-  clothingItem
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $pull: { likes: req.user._id } },
-      { new: true },
-    )
+  clothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
     .orFail()
     .then((item) => {
       res.send(item);
@@ -99,14 +92,15 @@ const dislikeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: "Item not found"});
+        return res
+          .status(NOTFOUND_ERROR)
+          .send({ message: err.message });
       }
 
-      else if (err.name === "CastError") {
-        return res.status(NOTFOUND_ERROR).send({ message: "Invalid data" });
-      } else {
-        return res.status(DEFAULT_ERROR).send({ message: "The server has encountered an error"  });
+      if (err.name === "CastError") {
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
+      return res.status(DEFAULT_ERROR).send({ message: err.message });
     });
 };
 
@@ -115,5 +109,5 @@ module.exports = {
   createClothingItem,
   deleteClothingItem,
   likeItem,
-  dislikeItem,
-};
+  dislikeItem
+  };
