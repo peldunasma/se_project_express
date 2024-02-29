@@ -45,7 +45,7 @@ const getUser = (req,res) => {
           .status(NOTFOUND_ERROR)
           .send({ message: err.message });
     } if (err.name === "CastError") {
-      return res.status(NOTFOUND_ERROR).send({ message: "Invalid data" });
+      return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
     }
     return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
   });
