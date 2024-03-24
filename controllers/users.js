@@ -1,8 +1,10 @@
+const { JWT_SECRET } = require("../utils/config");
 const User = require("../models/user");
 const {
   INVALID_DATA_ERROR,
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
+  UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
 
 // returns all users
@@ -19,8 +21,19 @@ const getUsers = (req, res) => {
 // creates a new user
 
 const createUser = (req, res) => {
-  const { name, avatar} = req.body;
-  User.create({ name, avatar })
+  const { name, avatar, email, password} = req.body;
+  User.findOne({ email })
+    .select("+password")
+    .then((user) => {
+      if (!email) {
+        throw new Error("Enter a valid email");
+      }
+      if (user) {
+        throw new Error("Email is already in use");
+      }
+      return bcrypt.hash(password, 10);
+    })
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
@@ -30,6 +43,34 @@ const createUser = (req, res) => {
       return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
     });
 };
+
+// user login
+
+const loginUser = (req,res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(INVALID_DATA_ERROR).send({ message: "Invalid credentials" });
+    return;
+  }
+
+  User.findUserByCredentials(email, password)
+  .then(user => {
+        // we get the user object if the email and password match
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        res.send({ token });
+  })
+  .catch(err => {
+        // otherwise, we get an error
+        console.error(err);
+      if (err.name === "ValidationError") {
+      return res.status(UNAUTHORIZED_ERROR).send({message: "Invalid credentials"});
+      }
+      return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
+    });
+}
 
 // returns all users by _Id
 

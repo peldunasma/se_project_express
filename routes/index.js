@@ -5,6 +5,10 @@ const { NOTFOUND_ERROR } = require("../utils/errors");
 
 router.use("/users", userRouter);
 router.use("/items", itemRouter);
+
+router.post("/signin", loginUser);
+router.post("/signup", createUser);
+
 router.use((req, res) => {
   res.status(NOTFOUND_ERROR).send({ message: "Requested resource not found" });
 });
