@@ -3,31 +3,36 @@ const {
   INVALID_DATA_ERROR,
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
+  FORBIDDEN_ERROR,
 } = require("../utils/errors");
 
 // returns all clothing items
 
 const getClothingItems = (req, res) => {
   ClothingItem.find({})
-    .then ((items) => res.status(200).send(items))
+    .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.log(err);
-      res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server" })
-    })
+      res
+        .status(DEFAULT_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
 };
 
 // creates a new item
 
 const createClothingItem = (req, res) => {
-  const { name, weather, imageUrl} = req.body;
+  const { name, weather, imageUrl } = req.body;
   ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-      return res.status(INVALID_DATA_ERROR ).send({message: "Invalid data"});
+        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
       }
-      return res.status(DEFAULT_ERROR ).send({message: "An error has occurred on the server" });
+      return res
+        .status(DEFAULT_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -35,9 +40,19 @@ const createClothingItem = (req, res) => {
 
 const deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => {
+      if (item.owner.toString() !== req.user._id.toString()) {
+        return res.status(FORBIDDEN_ERROR).send({
+          message: "You do not have sufficient privileges delete this item.",
+        });
+      }
+      return ClothingItem.findByIdAndDelete(itemId)
+        .orFail()
+        .then((item) => res.status(200).send(item));
+    })
+
     .catch((err) => {
       console.log(err);
       if (err.name === "DocumentNotFoundError") {
@@ -46,7 +61,9 @@ const deleteClothingItem = (req, res) => {
       if (err.name === "CastError") {
         return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
       }
-      return res.status(INVALID_DATA_ERROR).send({ message: "An error has occurred on the server"  });
+      return res
+        .status(INVALID_DATA_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -65,15 +82,15 @@ const likeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(NOTFOUND_ERROR)
-          .send({ message: err.message });
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
 
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR).send({ message:"Invalid data" });
+        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
       }
-      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server"  });
+      return res
+        .status(DEFAULT_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -92,15 +109,15 @@ const dislikeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(NOTFOUND_ERROR)
-          .send({ message: err.message });
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
 
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data"});
+        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
       }
-      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server"  });
+      return res
+        .status(DEFAULT_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -109,5 +126,5 @@ module.exports = {
   createClothingItem,
   deleteClothingItem,
   likeItem,
-  dislikeItem
-  };
+  dislikeItem,
+};

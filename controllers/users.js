@@ -9,14 +9,28 @@ const {
 
 // returns all users
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
+const updateUser = (req, res) => {
+  const { userId } = req.params;
+  const { name, avatar } = req.body;
+  User.findByIdAndUpdate(
+    userId,
+    {name, avatar},
+    { new: true, runValidators: true },
+    )
+    .orFail()
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       console.error(err);
-      return res.status(DEFAULT_ERROR).send({ message: "An error has occurred on the server" });
+      if (err.name === "DocumentNotFoundError") {
+        return res
+            .status(NOTFOUND_ERROR)
+            .send({ message: err.message });
+      } if (err.name === "CastError") {
+        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+      }
+      return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
     });
-};
+  };
 
 // creates a new user
 
@@ -74,7 +88,7 @@ const loginUser = (req,res) => {
 
 // returns all users by _Id
 
-const getUser = (req,res) => {
+const getCurrentUser = (req,res) => {
   const { userId } = req.params;
   User.findById(userId)
   .orFail()
@@ -93,7 +107,8 @@ const getUser = (req,res) => {
 };
 
 module.exports = {
-  getUsers,
+  updateUser,
   createUser,
-  getUser
+  getCurrentUser,
+  loginUser
   };
