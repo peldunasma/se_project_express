@@ -33,8 +33,9 @@ const updateUser = (req, res) => {
   };
 
 // creates a new user
+
 const createUser = (req, res) => {
-  const { name, avatar, email, password } = req.body;
+  const { name, avatar, email, password} = req.body;
 
   if (!email || !password) {
     res.status(badRequestError.statusCode).send({ message: "Invalid data" });
@@ -44,76 +45,24 @@ const createUser = (req, res) => {
   User.findOne({ email })
     .select("+password")
     .then((user) => {
+      if (!email) {
+        throw new Error("Enter a valid email");
+      }
       if (user) {
-        const error = new Error("A user with the current email already exists");
-        error.statusCode = 409;
-        throw error;
+        throw new Error("Email is already in use");
       }
       return bcrypt.hash(password, 10);
     })
-    .then((hash) =>
-      User.create({
-        name,
-        avatar,
-        email,
-        password: hash,
-      }),
-    )
-    .then((item) =>
-      res.setHeader("Content-Type", "application/json").status(201).send({
-        name: item.name,
-        avatar: item.avatar,
-        email: item.email,
-      }),
-    )
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
-      if (err.statusCode === 409) {
-        res
-          .status(conflictError.statusCode)
-          .send({ message: "A user with the current email already exists" });
-      } else if (err.name === "ValidationError") {
-        res
-          .status(badRequestError.statusCode)
-          .send({ message: "Invalid data" });
-      } else {
-        res
-          .status(serverError.statusCode)
-          .send({ message: "An error has occurred on the server" });
+      if (err.name === "ValidationError") {
+      return res.status(INVALID_DATA_ERROR ).send({message: "Invalid data"});
       }
+      return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
     });
 };
-
-
-// const createUser = (req, res) => {
-//   const { name, avatar, email, password} = req.body;
-
-//   if (!email || !password) {
-//     res.status(badRequestError.statusCode).send({ message: "Invalid data" });
-//     return;
-//   }
-
-//   User.findOne({ email })
-//     .select("+password")
-//     .then((user) => {
-//       if (!email) {
-//         throw new Error("Enter a valid email");
-//       }
-//       if (user) {
-//         throw new Error("Email is already in use");
-//       }
-//       return bcrypt.hash(password, 10);
-//     })
-//     .then((hash) => User.create({ name, avatar, email, password: hash }))
-//     .then((user) => res.status(201).send(user))
-//     .catch((err) => {
-//       console.error(err);
-//       if (err.name === "ValidationError") {
-//       return res.status(INVALID_DATA_ERROR ).send({message: "Invalid data"});
-//       }
-//       return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
-//     });
-// };
 
 // user login
 
