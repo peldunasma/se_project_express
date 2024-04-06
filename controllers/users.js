@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const { JWT_SECRET } = require("../utils/config");
 const User = require("../models/user");
 const {
@@ -5,15 +6,16 @@ const {
   NOTFOUND_ERROR,
   DEFAULT_ERROR,
   UNAUTHORIZED_ERROR,
+  HTTP_USER_DUPLICATED
 } = require("../utils/errors");
 
 // returns all users
 
 const updateUser = (req, res) => {
-  const { userId } = req.params;
+  const { _id } = req.user;
   const { name, avatar } = req.body;
   User.findByIdAndUpdate(
-    userId,
+    _id,
     {name, avatar},
     { new: true, runValidators: true },
     )
@@ -37,30 +39,52 @@ const updateUser = (req, res) => {
 const createUser = (req, res) => {
   const { name, avatar, email, password} = req.body;
 
-  if (!email || !password) {
-    res.status(badRequestError.statusCode).send({ message: "Invalid data" });
+  if (!email) {
+    res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
     return;
   }
 
   User.findOne({ email })
     .select("+password")
     .then((user) => {
-      if (!email) {
-        throw new Error("Enter a valid email");
-      }
+
       if (user) {
-        throw new Error("Email is already in use");
+        const error = new Error("Duplicate user")
+        error.statusCode =  HTTP_USER_DUPLICATED;
+        throw error;
       }
+
       return bcrypt.hash(password, 10);
     })
-    .then((hash) => User.create({ name, avatar, email, password: hash }))
-    .then((user) => res.status(201).send(user))
+    .then((hash) =>
+    User.create({
+      name,
+      avatar,
+      email,
+      password: hash
+    }),
+
+    )
+    .then((user) =>
+    res.status(201).send({
+      name: user.name,
+      avatar: user.avatar,
+      email: user.email,
+    }),
+  )
     .catch((err) => {
       console.error(err);
-      if (err.name === "ValidationError") {
-      return res.status(INVALID_DATA_ERROR ).send({message: "Invalid data"});
+      if (err.statusCode === HTTP_USER_DUPLICATED) {
+        return res
+          .status(HTTP_USER_DUPLICATED)
+          .send({ message: "Duplicate Error" });
       }
-      return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
+      if (err.name === "ValidationError") {
+      return res.status(INVALID_DATA_ERROR).send({message: "Invalid data"});
+      }
+      return res
+      .status(DEFAULT_ERROR)
+      .send({message: "An error has occurred on the server"});
     });
 };
 
@@ -75,18 +99,23 @@ const loginUser = (req,res) => {
   }
 
   User.findUserByCredentials(email, password)
-  .then(user => {
+  .then((user) => {
         // we get the user object if the email and password match
         const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
           expiresIn: "7d",
         });
-        res.send({ token });
+        res.status(200).send({ token });
   })
   .catch(err => {
         // otherwise, we get an error
         console.error(err);
       if (err.name === "ValidationError") {
-      return res.status(UNAUTHORIZED_ERROR).send({message: "Invalid credentials"});
+      return res.status(INVALID_DATA_ERROR).send({message: "Invalid credentials"});
+      }
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(UNAUTHORIZED_ERROR)
+          .send({ message: "Unauthorized data." });
       }
       return res.status(DEFAULT_ERROR).send({message: "An error has occurred on the server"});
     });
@@ -95,8 +124,8 @@ const loginUser = (req,res) => {
 // returns all users by _Id
 
 const getCurrentUser = (req,res) => {
-  const { userId } = req.params;
-  User.findById(userId)
+  const { _id } = req.user;
+  User.findById(_id)
   .orFail()
   .then((user) => res.status(200).send(user))
   .catch((err) => {

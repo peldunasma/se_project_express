@@ -40,6 +40,7 @@ const createClothingItem = (req, res) => {
 
 const deleteClothingItem = (req, res) => {
   const { itemId } = req.params;
+
   ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
@@ -55,9 +56,6 @@ const deleteClothingItem = (req, res) => {
 
     .catch((err) => {
       console.log(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
-      }
       if (err.name === "CastError") {
         return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
       }
@@ -75,7 +73,6 @@ const likeItem = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .orFail()
     .then((item) => {
       res.send(item);
     })
