@@ -10,7 +10,10 @@ const {
 
 const getClothingItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send(items))
+    .then((items) => {
+      console.log(items);
+      return res.status(200).send(items);
+    })
     .catch((err) => {
       console.log(err);
       res
@@ -23,7 +26,8 @@ const getClothingItems = (req, res) => {
 
 const createClothingItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
+  const owner = req.user._id;
+  ClothingItem.create({ name, weather, imageUrl, owner})
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
@@ -39,7 +43,9 @@ const createClothingItem = (req, res) => {
 // deletes an item by _Id
 
 const deleteClothingItem = (req, res) => {
+
   const { itemId } = req.params;
+  console.log(req.params)
 
   ClothingItem.findById(itemId)
     .orFail()
@@ -73,17 +79,17 @@ const likeItem = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .then((item) => {
-      res.send(item);
-    })
+      res.status(200).send(item)
+})
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
-      }
-
       if (err.name === "CastError") {
         return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }
       return res
         .status(DEFAULT_ERROR)

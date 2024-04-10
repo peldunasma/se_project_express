@@ -28,4 +28,4 @@ const handleAuthorization = (req, res, next) => {
   return next();
 };
 
-module.exports = { handleAuthorization };
+module.exports = {handleAuthorization};
