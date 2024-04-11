@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 const cors = require("cors");
-const { loginUser, createUser } = require("./controllers/users");
 const { getClothingItems } = require("./controllers/clothingItems");
 
 const app = express()
