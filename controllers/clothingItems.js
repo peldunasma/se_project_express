@@ -8,7 +8,7 @@ const {
 
 // returns all clothing items
 
-const getClothingItems = (req, res) => {
+const getItem = (req, res) => {
   ClothingItem.find({})
     .then((items) => {
       console.log(items);
@@ -24,10 +24,10 @@ const getClothingItems = (req, res) => {
 
 // creates a new item
 
-const createClothingItem = (req, res) => {
+const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
-  ClothingItem.create({ name, weather, imageUrl, owner})
+  ClothingItem.create({ name, weather, imageUrl, owner })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
@@ -42,10 +42,9 @@ const createClothingItem = (req, res) => {
 
 // deletes an item by _Id
 
-const deleteClothingItem = (req, res) => {
-
+const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  console.log(req.params)
+  console.log(req.params);
 
   ClothingItem.findById(itemId)
     .orFail()
@@ -65,13 +64,16 @@ const deleteClothingItem = (req, res) => {
       if (err.name === "CastError") {
         return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
       }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+      }
       return res
         .status(INVALID_DATA_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
 };
 
-// like an item
+// likes an item
 
 const likeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
@@ -81,8 +83,8 @@ const likeItem = (req, res) => {
   )
     .orFail()
     .then((item) => {
-      res.status(200).send(item)
-})
+      res.status(200).send(item);
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "CastError") {
@@ -97,7 +99,7 @@ const likeItem = (req, res) => {
     });
 };
 
-// unlike an item
+// unlikes an item
 
 const dislikeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
@@ -125,9 +127,9 @@ const dislikeItem = (req, res) => {
 };
 
 module.exports = {
-  getClothingItems,
-  createClothingItem,
-  deleteClothingItem,
+  getItem,
+  createItem,
+  deleteItem,
   likeItem,
   dislikeItem,
 };
