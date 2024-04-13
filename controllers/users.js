@@ -24,6 +24,9 @@ const updateUser = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       console.error(err);
+      if (err.name === "ValidationError") {
+        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+      }
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOTFOUND_ERROR).send({ message: err.message });
       }

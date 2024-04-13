@@ -8,6 +8,10 @@ const {
   dislikeItem,
 } = require("../controllers/clothingItems");
 
+const { handleAuthorization } = require("../middlewares/auth");
+
+router.use(handleAuthorization);
+
 router.post("/", createItem);
 router.get("/", getItem );
 router.delete("/:itemId", deleteItem);
