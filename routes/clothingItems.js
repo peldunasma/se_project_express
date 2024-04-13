@@ -10,10 +10,10 @@ const {
 
 const { handleAuthorization } = require("../middlewares/auth");
 
+router.get("/", getItem );
 router.use(handleAuthorization);
 
 router.post("/", createItem);
-router.get("/", getItem );
 router.delete("/:itemId", deleteItem);
 router.put("/:itemId/likes", likeItem);
 router.delete("/:itemId/likes", dislikeItem);
