@@ -1,10 +1,8 @@
 const ClothingItem = require("../models/clothingItem");
-const {
-  INVALID_DATA_ERROR,
-  NOTFOUND_ERROR,
-  DEFAULT_ERROR,
-  FORBIDDEN_ERROR,
-} = require("../utils/errors");
+const BadRequestError = require("../utils/errors/badRequestError");
+const NotFoundError = require("../utils/errors/notFoundError");
+const ForbiddenError = require("../utils/errors/forbiddenError");
+
 
 // returns all clothing items
 
@@ -15,32 +13,34 @@ const getItem = (req, res) => {
       return res.status(200).send(items);
     })
     .catch((err) => {
-      console.log(err);
-      res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 
 // creates a new item
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
-  ClothingItem.create({ name, weather, imageUrl, owner })
+
+  ClothingItem.create({
+    name,
+    weather,
+    imageUrl,
+    owner,
+  })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+        next(new BadRequestError("Bad request, Invalid data"));
+      } else {
+        next(err);
       }
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
-// deletes an item by _Id
+// deletes an item
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
@@ -50,9 +50,11 @@ const deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== req.user._id.toString()) {
-        return res.status(FORBIDDEN_ERROR).send({
-          message: "You do not have sufficient privileges delete this item.",
-        });
+        next(
+          new ForbiddenError(
+            "You do not have sufficient privileges delete this item.",
+          ),
+        );
       }
       return ClothingItem.findByIdAndDelete(itemId)
         .orFail()
@@ -62,14 +64,12 @@ const deleteItem = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+        next(new BadRequestError("Bad request, Invalid data"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+        next(new NotFoundError("Item not found"));
       }
-      return res
-        .status(INVALID_DATA_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(new BadRequestError("An error has occurred on the server"));
     });
 };
 
@@ -88,14 +88,12 @@ const likeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+        next(new BadRequestError("Bad request, Invalid data"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+        next(new NotFoundError("Item not found"));
       }
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 
@@ -114,15 +112,13 @@ const dislikeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(NOTFOUND_ERROR).send({ message: err.message });
+        next(new NotFoundError("Item not found"));
       }
 
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR).send({ message: "Invalid data" });
+        next(new BadRequestError("Bad request, Invalid data"));
       }
-      return res
-        .status(DEFAULT_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      next(err)
     });
 };
 
