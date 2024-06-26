@@ -6,7 +6,7 @@ const ForbiddenError = require("../utils/errors/forbiddenError");
 
 // returns all clothing items
 
-const getItem = (req, res) => {
+const getItem = (req, res, next) => {
   ClothingItem.find({})
     .then((items) => {
       console.log(items);
@@ -42,7 +42,7 @@ const createItem = (req, res, next) => {
 
 // deletes an item
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
   console.log(req.params);
 
@@ -50,7 +50,7 @@ const deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== req.user._id.toString()) {
-        next(
+       return next(
           new ForbiddenError(
             "You do not have sufficient privileges delete this item.",
           ),
@@ -69,13 +69,13 @@ const deleteItem = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError("Item not found"));
       }
-      next(new BadRequestError("An error has occurred on the server"));
+      next(err);;
     });
 };
 
 // likes an item
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -99,7 +99,7 @@ const likeItem = (req, res) => {
 
 // unlikes an item
 
-const dislikeItem = (req, res) => {
+const dislikeItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },

@@ -116,7 +116,7 @@ const loginUser = (req, res, next) => {
 
 // returns all users by _Id
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
   User.findById(_id)
     .orFail()
