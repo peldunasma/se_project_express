@@ -1,21 +1,20 @@
-const INVALID_DATA_ERROR = 400;
+const badRequestError = 400;
 
-const NOTFOUND_ERROR = 404;
+const notFoundError = 404;
 
-const DEFAULT_ERROR = 500;
+const ConflictError = 409;
 
-const UNAUTHORIZED_ERROR = 401;
+const unauthorizedError = 401;
 
-const FORBIDDEN_ERROR = 403;
+const ForbiddenError = 403;
 
-const HTTP_USER_DUPLICATED = 409;
+
 
 
 module.exports = {
-  INVALID_DATA_ERROR,
-  NOTFOUND_ERROR,
-  DEFAULT_ERROR,
-  UNAUTHORIZED_ERROR,
-  FORBIDDEN_ERROR,
-  HTTP_USER_DUPLICATED
+  badRequestError,
+  notFoundError,
+  ConflictError,
+  ForbiddenError,
+  unauthorizedError,
 };
