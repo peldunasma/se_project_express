@@ -8,7 +8,7 @@ const validateURL = (value, helpers) => {
   return helpers.error("string.uri");
 };
 
-const createItemValidator = celebrate({
+module.exports.createItemValidator = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
@@ -19,10 +19,11 @@ const createItemValidator = celebrate({
       'string.empty': 'The "imageUrl" field must be filled in',
       'string.uri': 'the "imageUrl" field must be a valid url',
     }),
+    weather: Joi.string().valid('hot', 'warm', 'cold').required(),
   }),
 });
 
-const createUserValidator = celebrate({
+module.exports.createUserValidator = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
@@ -43,7 +44,7 @@ const createUserValidator = celebrate({
   }),
 });
 
- const updateUserValidator = celebrate({
+module.exports.updateUserValidator = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
@@ -58,7 +59,7 @@ const createUserValidator = celebrate({
   }),
 });
 
-  const loginValidator = celebrate({
+module.exports.loginValidator = celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().email().messages({
         "string.empty": 'The "email" field must be filled in',
@@ -70,17 +71,8 @@ const createUserValidator = celebrate({
       }),
     });
 
-    const idValidator = celebrate({
+    module.exports.idValidator = celebrate({
       params: Joi.object().keys({
         itemId: Joi.string().hex().length(24).required(),
-        UserId: Joi.string().hex().length(24).required(),
       }),
     });
-
-    module.exports = {
-      createItemValidator,
-      createUserValidator,
-      loginValidator,
-      idValidator,
-      updateUserValidator,
-    };
