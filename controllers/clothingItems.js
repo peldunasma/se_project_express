@@ -50,7 +50,7 @@ const deleteItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== req.user._id.toString()) {
-       return next(
+       next(
           new ForbiddenError(
             "You do not have sufficient privileges delete this item.",
           ),
@@ -69,7 +69,7 @@ const deleteItem = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError("Item not found"));
       }
-      next(err);;
+      next(new BadRequestError("An error has occurred on the server"));
     });
 };
 
